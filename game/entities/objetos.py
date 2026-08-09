@@ -8,25 +8,58 @@ class Cristal(BaseGrafica):
 
     def render(self, pantalla):
         e = self.e
-        lienzo = pygame.Surface((6*e, 6*e), pygame.SRCALPHA)
+        lienzo = pygame.Surface((6 * e, 6 * e), pygame.SRCALPHA)
 
         AZUL = (0, 200, 255)
         BLANCO = (255, 255, 255)
 
+        centro = (3 * e, 3 * e)
+
+        for radio in range(3 * e, 0, -max(1, e // 2)):
+            alpha = int(35 * (radio / (3 * e)))
+            pygame.draw.circle(
+                lienzo,
+                (0, 220, 255, alpha),
+                centro,
+                radio
+            )
+
         diamante = [
-            (3*e, 0.5*e),
-            (5*e, 3*e),
-            (3*e, 5.5*e),
-            (1*e, 3*e)
+            (3 * e, 0.5 * e),
+            (5 * e, 3 * e),
+            (3 * e, 5.5 * e),
+            (1 * e, 3 * e)
         ]
 
         pygame.draw.polygon(lienzo, AZUL, diamante)
-        pygame.draw.polygon(lienzo, BLANCO, diamante, 1)
+        pygame.draw.polygon(lienzo, BLANCO, diamante, max(1, e // 3))
 
-        # Descomentado para que el objeto realmente se dibuje
+        reflejo = [
+            (3 * e, 1 * e),
+            (4 * e, 2.7 * e),
+            (3 * e, 2.2 * e),
+            (2.4 * e, 2.8 * e)
+        ]
+
+        pygame.draw.polygon(lienzo, (220, 250, 255), reflejo)
+
+        pygame.draw.line(
+            lienzo,
+            BLANCO,
+            (3 * e, 1 * e),
+            (3 * e, 2 * e),
+            max(1, e // 3)
+        )
+
+        pygame.draw.line(
+            lienzo,
+            BLANCO,
+            (2.5 * e, 1.5 * e),
+            (3.5 * e, 1.5 * e),
+            max(1, e // 3)
+        )
+
         pantalla.blit(lienzo, (self.x, self.y))
-
-
 class Moneda(BaseGrafica):
     def __init__(self, x, y, e, tipo="moneda"):
         super().__init__(x, y, e)
@@ -34,19 +67,121 @@ class Moneda(BaseGrafica):
 
     def render(self, pantalla):
         e = self.e
-        lienzo = pygame.Surface((6*e, 6*e), pygame.SRCALPHA)
+        lienzo = pygame.Surface((6 * e, 6 * e), pygame.SRCALPHA)
 
         ORO = (245, 200, 30)
+        ORO_BRILLO = (255, 225, 70)
         BORDE = (160, 120, 0)
+        NEGRO = (35, 25, 10)
+        BLANCO = (255, 255, 220)
 
-        pygame.draw.circle(lienzo, ORO, (3*e, 3*e), 2*e)
-        pygame.draw.circle(lienzo, BORDE, (3*e, 3*e), 2*e, 1)
+        centro = (3 * e, 3 * e)
 
-        pygame.draw.line(lienzo, BORDE, (3*e, 1.7*e), (3*e, 4.3*e), 2)
-        pygame.draw.line(lienzo, BORDE, (2*e, 3*e), (4*e, 3*e), 2)
+        for radio in range(3 * e, 0, -max(1, e // 2)):
+            alpha = int(30 * (radio / (3 * e)))
+            pygame.draw.circle(
+                lienzo,
+                (255, 210, 40, alpha),
+                centro,
+                radio
+            )
+
+        pygame.draw.circle(
+            lienzo,
+            ORO,
+            centro,
+            2 * e
+        )
+
+        pygame.draw.circle(
+            lienzo,
+            BORDE,
+            centro,
+            2 * e,
+            max(1, e // 3)
+        )
+
+        pygame.draw.arc(
+            lienzo,
+            ORO_BRILLO,
+            (1.3 * e, 1.3 * e, 3.4 * e, 3.4 * e),
+            0.5,
+            2.5,
+            max(1, e // 3)
+        )
+
+        pygame.draw.circle(
+            lienzo,
+            NEGRO,
+            (3 * e, 2.7 * e),
+            int(1.05 * e)
+        )
+
+        pygame.draw.circle(
+            lienzo,
+            ORO,
+            (3 * e, 2.2 * e),
+            int(0.75 * e)
+        )
+
+        pygame.draw.circle(
+            lienzo,
+            NEGRO,
+            (2.65 * e, 2.65 * e),
+            int(0.32 * e)
+        )
+
+        pygame.draw.circle(
+            lienzo,
+            NEGRO,
+            (3.35 * e, 2.65 * e),
+            int(0.32 * e)
+        )
+
+        pygame.draw.polygon(
+            lienzo,
+            NEGRO,
+            [
+                (2.4 * e, 3.2 * e),
+                (2.6 * e, 3.8 * e),
+                (3.4 * e, 3.8 * e),
+                (3.6 * e, 3.2 * e)
+            ]
+        )
+
+        pygame.draw.line(
+            lienzo,
+            ORO,
+            (2.65 * e, 3.45 * e),
+            (2.65 * e, 3.85 * e),
+            max(1, e // 3)
+        )
+
+        pygame.draw.line(
+            lienzo,
+            ORO,
+            (3 * e, 3.45 * e),
+            (3 * e, 3.85 * e),
+            max(1, e // 3)
+        )
+
+        pygame.draw.line(
+            lienzo,
+            ORO,
+            (3.35 * e, 3.45 * e),
+            (3.35 * e, 3.85 * e),
+            max(1, e // 3)
+        )
+
+        pygame.draw.line(
+            lienzo,
+            BLANCO,
+            (2.1 * e, 1.8 * e),
+            (2.7 * e, 1.5 * e),
+            max(1, e // 3)
+        )
 
         pantalla.blit(lienzo, (self.x, self.y))
-
 
 class Pocion(BaseGrafica):
     def __init__(self, x, y, e, tipo="pocion"):
@@ -55,24 +190,46 @@ class Pocion(BaseGrafica):
 
     def render(self, pantalla):
         e = self.e
-        lienzo = pygame.Surface((6*e, 6*e), pygame.SRCALPHA)
+        lienzo = pygame.Surface((6 * e, 6 * e), pygame.SRCALPHA)
 
-        ROJO = (220, 40, 60)
-        GRIS = (180, 180, 180)
+        VERDE = (40, 200, 80)
+        VERDE_OSCURO = (20, 120, 50)
+        GRIS = (160, 160, 160)
         BLANCO = (255, 255, 255)
 
-        # Cuello
-        pygame.draw.rect(lienzo, GRIS, (2.5*e, 0.8*e, e, e))
+        pygame.draw.rect(
+            lienzo,
+            GRIS,
+            (2.5 * e, 1.2 * e, e, 0.8 * e)
+        )
 
-        # Frasco
-        pygame.draw.ellipse(lienzo, ROJO, (1*e, 1.5*e, 4*e, 4*e))
-        pygame.draw.ellipse(lienzo, BLANCO, (1*e, 1.5*e, 4*e, 4*e), 1)
+        pygame.draw.rect(
+            lienzo,
+            VERDE_OSCURO,
+            (2.4 * e, 1.0 * e, 1.2 * e, 0.25 * e)
+        )
 
-        # Brillo
-        pygame.draw.circle(lienzo, (255,255,255), (2*e, 2.5*e), int(0.4*e))
+        pygame.draw.ellipse(
+            lienzo,
+            VERDE,
+            (1.5 * e, 2 * e, 3 * e, 3 * e)
+        )
+
+        pygame.draw.ellipse(
+            lienzo,
+            VERDE_OSCURO,
+            (1.5 * e, 2 * e, 3 * e, 3 * e),
+            max(1, int(0.3 * e))
+        )
+
+        pygame.draw.circle(
+            lienzo,
+            BLANCO,
+            (2.2 * e, 2.7 * e),
+            max(1, int(0.3 * e))
+        )
 
         pantalla.blit(lienzo, (self.x, self.y))
-
 #--------------
 
 class InteractableItem(BaseGrafica):
@@ -127,60 +284,237 @@ class Llave(BaseGrafica):
     # ----------------------------------------------------------
 
     def _llave_jungla(self, s, e):
-        VERDE = (40, 170, 70)
-        OSCURO = (20, 100, 40)
+        VERDE_MUSGO = (55, 115, 45)
+        VERDE_OSCURO = (20, 65, 30)
+        VERDE_PROFUNDO = (10, 45, 22)
+        VERDE_BRILLO = (90, 150, 55)
+        MARRON = (75, 55, 30)
 
-        # aro
-        pygame.draw.circle(s, VERDE, (2*e, 4*e), e)
-        pygame.draw.circle(s, (0,0,0,0), (2*e,4*e), int(0.55*e))
+        pygame.draw.circle(
+            s,
+            VERDE_PROFUNDO,
+            (2 * e, 4 * e),
+            int(1.15 * e)
+        )
 
-        # tallo
-        pygame.draw.rect(s, VERDE, (2*e,3.7*e,4*e,0.6*e))
+        pygame.draw.circle(
+            s,
+            VERDE_MUSGO,
+            (2 * e, 4 * e),
+            int(0.85 * e)
+        )
 
-        # dientes
-        pygame.draw.rect(s, VERDE, (5.2*e,3.7*e,0.5*e,1.5*e))
-        pygame.draw.rect(s, VERDE, (4.2*e,3.7*e,0.5*e,e))
+        pygame.draw.circle(
+            s,
+            VERDE_PROFUNDO,
+            (2 * e, 4 * e),
+            int(0.42 * e)
+        )
 
-        # hojas
-        pygame.draw.polygon(s, OSCURO,
-            [(3*e,3*e),(4*e,2.2*e),(4.5*e,3*e)])
-        pygame.draw.polygon(s, OSCURO,
-            [(3.8*e,5*e),(4.8*e,5.8*e),(4.5*e,4.8*e)])
+        pygame.draw.rect(
+            s,
+            VERDE_MUSGO,
+            (2.5 * e, 3.65 * e, 3.0 * e, 0.7 * e)
+        )
+
+        pygame.draw.rect(
+            s,
+            VERDE_OSCURO,
+            (2.5 * e, 4.15 * e, 3.0 * e, 0.2 * e)
+        )
+
+        pygame.draw.rect(
+            s,
+            VERDE_MUSGO,
+            (5.0 * e, 3.65 * e, 0.55 * e, 1.4 * e)
+        )
+
+        pygame.draw.rect(
+            s,
+            VERDE_MUSGO,
+            (4.2 * e, 3.65 * e, 0.55 * e, 0.9 * e)
+        )
+
+        pygame.draw.polygon(
+            s,
+            VERDE_OSCURO,
+            [
+                (2.7 * e, 3.1 * e),
+                (3.6 * e, 2.0 * e),
+                (4.4 * e, 2.9 * e),
+                (3.7 * e, 3.3 * e)
+            ]
+        )
+
+        pygame.draw.polygon(
+            s,
+            VERDE_PROFUNDO,
+            [
+                (3.5 * e, 2.8 * e),
+                (4.1 * e, 2.1 * e),
+                (4.7 * e, 2.7 * e),
+                (4.0 * e, 3.0 * e)
+            ]
+        )
+
+        pygame.draw.polygon(
+            s,
+            VERDE_OSCURO,
+            [
+                (3.4 * e, 4.7 * e),
+                (4.3 * e, 5.65 * e),
+                (4.9 * e, 4.7 * e),
+                (4.1 * e, 4.5 * e)
+            ]
+        )
+
+        pygame.draw.arc(
+            s,
+            VERDE_PROFUNDO,
+            (1.0 * e, 2.4 * e, 2.8 * e, 3.4 * e),
+            0.5,
+            4.8,
+            max(1, int(0.18 * e))
+        )
+
+        pygame.draw.polygon(
+            s,
+            VERDE_BRILLO,
+            [
+                (2.8 * e, 3.0 * e),
+                (2.25 * e, 2.55 * e),
+                (2.45 * e, 3.3 * e)
+            ]
+        )
+
+        pygame.draw.line(
+            s,
+            MARRON,
+            (2.7 * e, 3.9 * e),
+            (4.8 * e, 3.9 * e),
+            max(1, int(0.15 * e))
+        )
 
     # ----------------------------------------------------------
 
     def _llave_desierto(self, s, e):
-        ORO = (228, 185, 60)
-        MARRON = (160, 110, 30)
+        PIEDRA = (155, 125, 75)
+        PIEDRA_CLARA = (190, 155, 95)
+        PIEDRA_OSCURA = (95, 75, 45)
+        SOMBRA = (65, 55, 40)
+        GEMA = (185, 95, 35)
+        GEMA_OSCURA = (110, 50, 25)
 
-        # aro hexagonal
-        pygame.draw.polygon(s, ORO, [
-            (2*e,2.8*e),
-            (3*e,3.4*e),
-            (3*e,4.6*e),
-            (2*e,5.2*e),
-            (1*e,4.6*e),
-            (1*e,3.4*e)
-        ], 0)
+        pygame.draw.polygon(
+            s,
+            PIEDRA_OSCURA,
+            [
+                (2 * e, 2.7 * e),
+                (3.0 * e, 3.35 * e),
+                (3.0 * e, 4.65 * e),
+                (2 * e, 5.3 * e),
+                (1 * e, 4.65 * e),
+                (1 * e, 3.35 * e)
+            ]
+        )
 
-        pygame.draw.circle(s, (0,0,0,0), (2*e,4*e), int(0.45*e))
+        pygame.draw.polygon(
+            s,
+            PIEDRA,
+            [
+                (2 * e, 2.9 * e),
+                (2.8 * e, 3.4 * e),
+                (2.8 * e, 4.6 * e),
+                (2 * e, 5.0 * e),
+                (1.2 * e, 4.6 * e),
+                (1.2 * e, 3.4 * e)
+            ]
+        )
 
-        # mango
-        pygame.draw.rect(s, ORO, (2*e,3.7*e,4.5*e,0.6*e))
+        pygame.draw.polygon(
+            s,
+            SOMBRA,
+            [
+                (2 * e, 3.25 * e),
+                (2.5 * e, 3.55 * e),
+                (2.5 * e, 4.45 * e),
+                (2 * e, 4.7 * e),
+                (1.5 * e, 4.45 * e),
+                (1.5 * e, 3.55 * e)
+            ]
+        )
 
-        # dientes
-        pygame.draw.rect(s, ORO, (5.5*e,3.7*e,0.5*e,1.2*e))
-        pygame.draw.rect(s, ORO, (4.6*e,3.7*e,0.5*e,0.8*e))
+        pygame.draw.rect(
+            s,
+            PIEDRA,
+            (2.5 * e, 3.7 * e, 3.0 * e, 0.7 * e)
+        )
 
-        # gema
-        pygame.draw.polygon(s, MARRON, [
-            (2*e,2.5*e),
-            (2.4*e,3*e),
-            (2*e,3.5*e),
-            (1.6*e,3*e)
-        ])
+        pygame.draw.rect(
+            s,
+            PIEDRA_OSCURA,
+            (2.5 * e, 4.15 * e, 3.0 * e, 0.2 * e)
+        )
 
-    # ----------------------------------------------------------
+        pygame.draw.rect(
+            s,
+            PIEDRA,
+            (5.0 * e, 3.7 * e, 0.55 * e, 1.35 * e)
+        )
+
+        pygame.draw.rect(
+            s,
+            PIEDRA,
+            (4.2 * e, 3.7 * e, 0.55 * e, 0.9 * e)
+        )
+
+        pygame.draw.polygon(
+            s,
+            GEMA_OSCURA,
+            [
+                (2 * e, 2.45 * e),
+                (2.5 * e, 3 * e),
+                (2 * e, 3.55 * e),
+                (1.5 * e, 3 * e)
+            ]
+        )
+
+        pygame.draw.polygon(
+            s,
+            GEMA,
+            [
+                (2 * e, 2.65 * e),
+                (2.3 * e, 3 * e),
+                (2 * e, 3.35 * e),
+                (1.7 * e, 3 * e)
+            ]
+        )
+
+        pygame.draw.line(
+            s,
+            PIEDRA_CLARA,
+            (1.35 * e, 3.45 * e),
+            (1.7 * e, 3.15 * e),
+            max(1, int(0.18 * e))
+        )
+
+        pygame.draw.line(
+            s,
+            PIEDRA_OSCURA,
+            (2.65 * e, 4.55 * e),
+            (2.35 * e, 4.85 * e),
+            max(1, int(0.18 * e))
+        )
+
+        pygame.draw.line(
+            s,
+            PIEDRA_OSCURA,
+            (3.2 * e, 3.85 * e),
+            (3.5 * e, 4.05 * e),
+            max(1, int(0.15 * e))
+        )
+
+    # ----------------NO USADA-------------------------
 
     def _llave_cofre(self, s, e):
         MORADO = (170, 70, 255)

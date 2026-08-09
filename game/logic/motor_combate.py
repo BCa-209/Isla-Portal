@@ -22,8 +22,13 @@ class CombatManager:
         self.estado = "SELECCION"
 
     def fijar_acciones(self, id_accion_jugador, id_accion_enemigo):
-        self.accion_jugador = self.acciones[id_accion_jugador]
-        self.accion_enemigo = self.acciones[id_accion_enemigo]
+        # Convertimos a diccionario (dict) para poder inyectarle el nombre sin alterar el original
+        self.accion_jugador = dict(self.acciones[id_accion_jugador])
+        self.accion_jugador["nombre_ataque"] = id_accion_jugador
+        
+        self.accion_enemigo = dict(self.acciones[id_accion_enemigo])
+        self.accion_enemigo["nombre_ataque"] = id_accion_enemigo
+        
         self.estado = "EJECUCION"
 
     def actualizar_timers(self):
@@ -46,7 +51,7 @@ class CombatManager:
         return None
 
     def obtener_info_enemigo(self):
-        if self.inventario.cordura < 60:
+        if self.inventario.cordura < 40:
             return "???"
         else:
             return self.accion_enemigo

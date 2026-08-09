@@ -36,6 +36,9 @@ class GameManager:
         
         self.mapas = {}
         self.enemigos_por_nivel = {}
+
+        self.timer_locura = 0
+        self.limite_locura = random.randint(300, 900)
         
         self._inicializar_mundo()
         self.cargar_nivel(self.nivel_actual)
@@ -52,7 +55,7 @@ class GameManager:
         self.mapas[1] = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 1, 1, 0, 2, 4, 0, 0, 1, 1, 1, 0, 2, 0, 1],
+            [1, 0, 12, 1, 0, 2, 4, 0, 0, 1, 1, 1, 0, 2, 0, 1],
             [1, 0, 1, 1, 0, 10, 2, 0, 0, 0, 0, 1, 0, 2, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 2, 0, 1],
             [1, 0, 2, 2, 0, 1, 1, 0, 2, 8, 0, 1, 0, 2, 0, 1], 
@@ -172,6 +175,30 @@ class GameManager:
                 texto_corrupto += char
                 
         return texto_corrupto
+
+    def evaluar_locura_espontanea(self):
+        # Solo ocurre si estás caminando libremente por el mapa
+        if self.estado != "EN_CURSO":
+            return
+            
+        if self.inventario.cordura <= 80:
+            self.timer_locura += 1
+            
+            if self.timer_locura >= self.limite_locura:
+                # Reiniciamos el temporizador con un nuevo tiempo aleatorio
+                self.timer_locura = 0
+                self.limite_locura = random.randint(600, 1500) 
+                
+                # Seleccionamos y mostramos el pensamiento
+                lista_locura = self.textos_lore.get("mensajes_locura", ["No puedo más..."])
+                pensamiento = random.choice(lista_locura)
+                
+                # Usamos iniciar_dialogo, el cual automáticamente le aplicará 
+                # la corrupción matemática (_aplicar_paranoia) antes de mostrarlo
+                self.iniciar_dialogo(pensamiento)
+        else:
+            # Si el jugador se cura y su cordura sube de 30, el contador se reinicia pacíficamente
+            self.timer_locura = 0
 
     def preparar_carga(self, nivel_destino):
         self.nivel_objetivo = nivel_destino

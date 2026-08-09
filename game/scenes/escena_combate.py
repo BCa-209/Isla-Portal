@@ -4,7 +4,7 @@ from core.escena_base import EscenaBase
 from game.logic.motor_combate import CombatManager
 from game.logic.ia_enemigos import IAEnemigo
 from game.entities.jugador import Protagonista
-from game.entities.enemigos import EnemigoSlime, VistaSectario, VistaVagabundo
+from game.entities.enemigos import EnemigoSlime, LiderSectario, VistaSectario, VistaVagabundo
 from game.logic.finales_manager import EndingManager 
 import config
 
@@ -20,14 +20,14 @@ class EscenaCombate(EscenaBase):
         self.manager_finales = EndingManager(self.inventario) 
         self.motor_combate = CombatManager(self.inventario)
         
-        es_jefe = (self.enemigo_data.get("tipo") == "jefe")
-        self.ia_enemigo = IAEnemigo(es_jefe=es_jefe)
+        tipo_enemigo = self.enemigo_data.get("tipo", "circulo")
+        self.ia_enemigo = IAEnemigo(tipo_enemigo)
         
         self.jugador_grafico = Protagonista(0, 0, self.e, self.tam_celda)
         self.jugador_grafico.setXY(150, 250)
         
-        if es_jefe:
-            self.enemigo_grafico = VistaSectario(0, 0, self.e, self.tam_celda)
+        if tipo_enemigo == "jefe":
+            self.enemigo_grafico = LiderSectario(0, 0, self.e, self.tam_celda)
         else:
             if self.enemigo_data.get("tipo") == "estatico":
                 self.enemigo_grafico = VistaSectario(0, 0, self.e, self.tam_celda)
@@ -227,9 +227,15 @@ class EscenaCombate(EscenaBase):
         pantalla.blit(texto_hp_jugador, (120, 50))
         pantalla.blit(texto_cordura, (120, 80))
         
-        nombre_enemigo = "Jefe Sectario" if self.enemigo_data.get("tipo") == "jefe" else "Bestia Oscura"
-        if self.enemigo_data.get("tipo") == "estatico":
+        tipo_e = self.enemigo_data.get("tipo")
+        if tipo_e == "jefe":
+            nombre_enemigo = "Líder Sectario"
+        elif tipo_e == "vagabundo":
+            nombre_enemigo = "El Vagabundo"
+        elif tipo_e == "estatico":
             nombre_enemigo = "Sectario Ritualista"
+        else:
+            nombre_enemigo = "Bestia Oscura"
             
         texto_hp_enemigo = self.fuente_ui.render(f"{nombre_enemigo}: {self.ia_enemigo.hp_actual}/{self.ia_enemigo.hp_maximo}", True, (255, 50, 50))
         pantalla.blit(texto_hp_enemigo, (500, 50))
@@ -255,7 +261,11 @@ class EscenaCombate(EscenaBase):
                 
         elif self.motor_combate.estado == "EJECUCION":
             info_enemigo = self.motor_combate.obtener_info_enemigo()
-            texto_intencion = "???" if info_enemigo == "???" else info_enemigo["tipo"].upper()
+            
+            if info_enemigo == "???":
+                texto_intencion = "???"
+            else:
+                texto_intencion = info_enemigo.get("nombre_ataque", "ataque").replace("_", " ").upper()
             
             lbl_prep_j = self.fuente_ui.render(f"Preparando: {self.opciones[self.indice_seleccion].replace('_', ' ').upper()}", True, (255, 255, 255))
             lbl_prep_e = self.fuente_ui.render(f"Enemigo prepara: {texto_intencion}", True, (255, 100, 100))

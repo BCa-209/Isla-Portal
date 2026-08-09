@@ -67,6 +67,7 @@ class EscenaIsla(EscenaBase):
             return
 
         if self.motor.estado == "EN_CURSO":
+            self.motor.evaluar_locura_espontanea()
             # --- 1. Lógica de Inputs y Cooldown ---
             if self.cooldown_movimiento > 0:
                 self.cooldown_movimiento -= 1
