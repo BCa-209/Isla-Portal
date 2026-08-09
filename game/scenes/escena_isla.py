@@ -23,7 +23,7 @@ class EscenaIsla(EscenaBase):
         self.temporizador_enemigos = 0
         self.temporizador_carga = 0
         self.cooldown_movimiento = 0  # Controla la velocidad del movimiento continuo
-        #self.recalcular_escala()  # Inicializa la escala basada en la resolución actual
+        self.recalcular_escala()  # Inicializa la escala basada en la resolución actual
 
     def manejar_eventos(self, eventos):
         for evento in eventos:
@@ -51,10 +51,13 @@ class EscenaIsla(EscenaBase):
     def actualizar(self):
         if self.motor.estado == "CARGANDO":
             self.temporizador_carga += 1
+            # Cuando termine de cargar el nivel, recalculamos la escala del nuevo mapa
+            if self.temporizador_carga == 120:
+                self.recalcular_escala()
             return
 
         if self.motor.estado == "EN_CURSO":
-            # 1. Movimiento Continuo del Jugador
+            # --- 1. Lógica de Inputs y Cooldown ---
             if self.cooldown_movimiento > 0:
                 self.cooldown_movimiento -= 1
                 
@@ -76,20 +79,25 @@ class EscenaIsla(EscenaBase):
                     movido = True
                     
                 if movido:
-                    # Pausa el movimiento por 10 frames (1/6 de segundo) para un control suave
                     self.cooldown_movimiento = 10 
 
-            # 2. Movimiento de los enemigos
+            # --- 2. Lógica del Motor de Enemigos ---
             self.temporizador_enemigos += 1
             if self.temporizador_enemigos >= 30:
                 self.motor.actualizar_enemigos()
                 self.temporizador_enemigos = 0
 
-            # 3. Sincronización gráfica
+            # --- 3. ANIMACIÓN FLUIDA DEL JUGADOR (LERP) ---
             fila_logica, col_logica = self.motor.jugador_pos
-            self.jugador_grafico.setFila(fila_logica)
-            self.jugador_grafico.setColumna(col_logica)
-            self.jugador_grafico.actualizar_coordenadas()
+            target_x = col_logica * self.tam_celda
+            target_y = fila_logica * self.tam_celda
+            
+            # Velocidad de deslizamiento (0.1 a 1.0). Un valor de 0.3 a 60FPS es muy fluido.
+            velocidad_suavizado = 0.3 
+            
+            # Movimiento matemático fluido hacia el destino
+            self.jugador_grafico.x += (target_x - self.jugador_grafico.x) * velocidad_suavizado
+            self.jugador_grafico.y += (target_y - self.jugador_grafico.y) * velocidad_suavizado
 
     def dibujar_pantalla_carga(self, pantalla):
         pantalla.fill((0, 0, 0))
@@ -126,18 +134,29 @@ class EscenaIsla(EscenaBase):
             pantalla.blit(texto_skip, (rect_caja[0] + 20, rect_caja[1] + rect_caja[3] - 40))
 
     def dibujar_overlay_derrota(self, pantalla):
+        # Fondo oscuro semitransparente
         overlay = pygame.Surface((config.ANCHO, config.ALTO), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 180)) 
+        overlay.fill((0, 0, 0, 210)) # Un poco más oscuro para que el texto resalte
         pantalla.blit(overlay, (0, 0))
 
-        texto = self.fuente_ui.render("¡ELIMINADO! - Reiniciar [R]", True, (255, 255, 255))
-        sombra = self.fuente_ui.render("¡ELIMINADO! - Reiniciar [R]", True, (255, 0, 0))
-        
-        rect = texto.get_rect(center=(config.ANCHO // 2, config.ALTO // 2))
-        rect_sombra = sombra.get_rect(center=(config.ANCHO // 2 + 2, config.ALTO // 2 + 2))
-        
-        pantalla.blit(sombra, rect_sombra) 
-        pantalla.blit(texto, rect)
+        # Extraemos los textos (usamos getattr por seguridad con valores por defecto)
+        titulo = getattr(self.motor, "titulo_derrota", "¡ELIMINADO!")
+        texto = getattr(self.motor, "texto_derrota", "Has caído ante la oscuridad.")
+
+        # 1. Renderizar el Título del Final (En rojo)
+        render_titulo = self.fuente_ui.render(titulo, True, (255, 50, 50))
+        rect_titulo = render_titulo.get_rect(center=(config.ANCHO // 2, config.ALTO // 2 - 60))
+        pantalla.blit(render_titulo, rect_titulo)
+
+        # 2. Renderizar la narrativa del final (En blanco/gris)
+        render_texto = self.fuente_dialogo.render(texto, True, (200, 200, 200))
+        rect_texto = render_texto.get_rect(center=(config.ANCHO // 2, config.ALTO // 2))
+        pantalla.blit(render_texto, rect_texto)
+
+        # 3. Instrucción para continuar (En amarillo)
+        render_instruccion = self.fuente_dialogo.render("Presiona [R] para reiniciar el ciclo...", True, (255, 255, 0))
+        rect_instruccion = render_instruccion.get_rect(center=(config.ANCHO // 2, config.ALTO // 2 + 80))
+        pantalla.blit(render_instruccion, rect_instruccion)
 
     def dibujar_dialogo(self, pantalla):
         margen = 20
@@ -229,9 +248,28 @@ class EscenaIsla(EscenaBase):
                         pygame.draw.circle(pantalla, (150, 0, 0), (x + self.tam_celda//2, y + self.tam_celda//2), self.tam_celda//2 - 5) 
                         pygame.draw.rect(pantalla, (200, 200, 200), (x + self.tam_celda//2 - 10, y + self.tam_celda//2 - 15, 20, 30))
         
+        # En el método render(self, pantalla):
+        
+        # Mapeo de enemigos lógicos a entidades visuales para que se muevan suavemente
         for e_data in self.motor.enemigos:
-            enemigo_grafico = VistaSectario(e_data["fila"], e_data["col"], self.e, self.tam_celda)
-            enemigo_grafico.actualizar_coordenadas()
+            target_x = e_data["col"] * self.tam_celda
+            target_y = e_data["fila"] * self.tam_celda
+            
+            # Instanciamos el gráfico del enemigo
+            enemigo_grafico = EnemigoSlime(0, 0, self.e, self.tam_celda)
+            
+            # Si no le hemos inyectado una posición visual anterior, la inicializamos
+            if "x_visual" not in e_data:
+                e_data["x_visual"] = target_x
+                e_data["y_visual"] = target_y
+                
+            # Aplicamos la misma interpolación LERP (movimiento fluido)
+            e_data["x_visual"] += (target_x - e_data["x_visual"]) * 0.2
+            e_data["y_visual"] += (target_y - e_data["y_visual"]) * 0.2
+            
+            # Le pasamos las coordenadas suavizadas al gráfico para que lo dibuje
+            enemigo_grafico.setX(e_data["x_visual"])
+            enemigo_grafico.setY(e_data["y_visual"])
             enemigo_grafico.render(pantalla)
                 
         self.jugador_grafico.render(pantalla)

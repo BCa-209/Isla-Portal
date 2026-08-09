@@ -203,9 +203,13 @@ class GameManager:
 
     def _evaluar_colisiones_enemigos(self):
         for enemigo in self.enemigos:
+            # NUEVO: Ignoramos la colisión si el enemigo está distraído con la moneda
+            if enemigo.get("distraido"):
+                continue
+                
             if enemigo["fila"] == self.jugador_pos[0] and enemigo["col"] == self.jugador_pos[1]:
                 self.enemigo_en_combate = enemigo
-                self.estado = "COMBATE" 
+                self.estado = "COMBATE"
 
     def _evaluar_interacciones(self, casilla, fila, col):
         if casilla == self.CUEVA:
@@ -215,14 +219,14 @@ class GameManager:
             self.iniciar_dialogo("Los restos de un ritual atroz. Mejor no acercarse más.")
             
         elif casilla == self.CRISTAL:
-            self.inventario.cristal = True
+            self.inventario.cristales += 1
             self.inventario.agregar_fragmento()
             self.inventario.cordura = min(100, self.inventario.cordura + 10)
             self.mapa[fila][col] = self.TIERRA
             self.iniciar_dialogo(self.textos_items.get("cristal", "Objeto recolectado."))
             
         elif casilla == self.MONEDA:
-            self.inventario.moneda = True
+            self.inventario.monedas += 1 # Sumar al contador
             self.inventario.cordura = min(100, self.inventario.cordura + 5)
             self.mapa[fila][col] = self.TIERRA
             self.iniciar_dialogo(self.textos_items.get("moneda", "Objeto recolectado."))

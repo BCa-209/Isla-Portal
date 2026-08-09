@@ -35,9 +35,8 @@ class EscenaJefe(EscenaBase):
                     decision = "huir"
                 
                 # Si se tomó una decisión válida, evaluamos el final y cambiamos de fase
-                if decision:
-                    self.resultado_final = self.manager_finales.evaluar_final(decision)
-                    self.fase = "RESULTADO"
+                if decision == "activar_portal":
+                    self.titulo_final, self.texto_resultado = self.manager_finales.evaluar_final("decision_monumento", "activar_portal")
 
     def actualizar(self):
         # Aquí podría ir la lógica de ataque o animaciones del BossController

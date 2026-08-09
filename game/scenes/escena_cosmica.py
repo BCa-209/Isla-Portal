@@ -3,6 +3,7 @@ import sys
 import json
 import os
 from core.escena_base import EscenaBase
+from game.logic.finales_manager import EndingManager
 import config
 
 class EscenaCosmica(EscenaBase):
@@ -10,6 +11,9 @@ class EscenaCosmica(EscenaBase):
         pygame.font.init()
         self.fuente_dialogo = pygame.font.SysFont("arial", 22)
         self.timer = 0
+        inventario = motor.inventario
+        manager = EndingManager(inventario)
+        self.titulo_final, self.texto = manager.evaluar_final("portal_morado")
         
         try:
             with open(os.path.join("data", "lore.json"), "r", encoding="utf-8") as archivo:

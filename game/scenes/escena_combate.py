@@ -5,6 +5,7 @@ from game.logic.motor_combate import CombatManager
 from game.logic.ia_enemigos import IAEnemigo
 from game.entities.jugador import Protagonista
 from game.entities.enemigos import EnemigoSlime, VistaSectario
+from game.logic.finales_manager import EndingManager 
 import config
 
 class EscenaCombate(EscenaBase):
@@ -16,6 +17,7 @@ class EscenaCombate(EscenaBase):
         self.inventario = motor_principal.inventario
         self.enemigo_data = motor_principal.enemigo_en_combate
         
+        self.manager_finales = EndingManager(self.inventario) 
         self.motor_combate = CombatManager(self.inventario)
         
         es_jefe = (self.enemigo_data.get("tipo") == "jefe")
@@ -25,16 +27,22 @@ class EscenaCombate(EscenaBase):
         self.jugador_grafico.setXY(150, 250)
         
         if es_jefe:
-            self.enemigo_grafico = VistaSectario(0, 0, self.e, self.tam_celda)
+            self.enemigo_grafico = VistaSectario(0, 0, self.e)
         else:
-            self.enemigo_grafico = EnemigoSlime(0, 0, self.e, self.tam_celda)
+            # Los sectarios estáticos usan los mismos gráficos que el jefe para mantener coherencia
+            if self.enemigo_data.get("tipo") == "estatico":
+                self.enemigo_grafico = VistaSectario(0, 0, self.e, self.tam_celda)
+            else:
+                self.enemigo_grafico = EnemigoSlime(0, 0, self.e, self.tam_celda)
+                
         self.enemigo_grafico.setXY(600, 250)
         
         pygame.font.init()
         self.fuente_ui = pygame.font.SysFont("arial", 24)
         self.fuente_titulo = pygame.font.SysFont("arial", 32, bold=True)
         
-        self.opciones = ["ataque_rapido", "ataque_pesado", "pocion", "observar"]
+        # NUEVO: Agregamos 'distraer' a la lista de opciones
+        self.opciones = ["ataque_rapido", "ataque_pesado", "pocion", "distraer", "observar"]
         self.indice_seleccion = 0
         
         self.mensaje_resolucion = ""
@@ -55,11 +63,38 @@ class EscenaCombate(EscenaBase):
                     elif evento.key in [pygame.K_RETURN, pygame.K_SPACE]:
                         accion_elegida = self.opciones[self.indice_seleccion]
                         
-                        # Bloquear el uso de poción si no quedan en el inventario
                         if accion_elegida == "pocion" and self.inventario.pociones <= 0:
                             self.mensaje_resolucion = "¡No tienes pociones en el inventario!"
                             self.motor_combate.estado = "RESOLUCION"
                             self.timer_resolucion = 90
+                            return
+                            
+                        # NUEVO: Lógica de la moneda para distraer
+                        if accion_elegida == "distraer":
+                            if self.inventario.monedas <= 0:
+                                self.mensaje_resolucion = "¡No tienes monedas de oro!"
+                                self.motor_combate.estado = "RESOLUCION"
+                                self.timer_resolucion = 90
+                                return
+                                
+                            if self.enemigo_data.get("tipo") == "circulo":
+                                self.mensaje_resolucion = "¡Las bestias oscuras no entienden el valor del oro!"
+                                self.motor_combate.estado = "RESOLUCION"
+                                self.timer_resolucion = 90
+                                return
+                                
+                            if self.enemigo_data.get("tipo") == "jefe":
+                                self.mensaje_resolucion = "¡El Líder no se dejará sobornar!"
+                                self.motor_combate.estado = "RESOLUCION"
+                                self.timer_resolucion = 90
+                                return
+                                
+                            # Si es un sectario normal (estático)
+                            self.inventario.monedas -= 1
+                            self.mensaje_resolucion = "Lanzas el oro. El sectario se distrae y escapas."
+                            self.motor_combate.estado = "RESOLUCION"
+                            self.timer_resolucion = 120
+                            self.resultado_especial = "escape"
                             return
                         
                         accion_enemiga = self.ia_enemigo.elegir_accion()
@@ -77,7 +112,10 @@ class EscenaCombate(EscenaBase):
         elif self.motor_combate.estado == "RESOLUCION":
             self.timer_resolucion -= 1
             if self.timer_resolucion <= 0:
-                if self.ia_enemigo.hp_actual <= 0:
+                # Verificamos si se activó la bandera de escape antes de revisar el HP
+                if getattr(self, "resultado_especial", None) == "escape":
+                    self.resolver_escape()
+                elif self.ia_enemigo.hp_actual <= 0:
                     self.resolver_victoria()
                 elif self.inventario.salud_actual <= 0:
                     self.resolver_derrota()
@@ -135,7 +173,22 @@ class EscenaCombate(EscenaBase):
             self.motor_principal.estado = "EN_CURSO"
             self.motor_principal.enemigo_en_combate = None
 
+    def resolver_escape(self):
+        """Finaliza el combate pacíficamente marcando al enemigo."""
+        # Al marcarlo, el motor lógico del mapa lo ignorará en futuras colisiones
+        self.enemigo_data["distraido"] = True
+        self.motor_principal.estado = "EN_CURSO"
+        self.motor_principal.enemigo_en_combate = None
+
     def resolver_derrota(self):
+        if self.enemigo_data.get("tipo") == "jefe":
+            titulo, texto = self.manager_finales.evaluar_final("muerte_jefe")
+        else:
+            titulo, texto = self.manager_finales.evaluar_final("muerte_comun")
+            
+        self.motor_principal.titulo_derrota = titulo
+        self.motor_principal.texto_derrota = texto
+        
         self.motor_principal.estado = "DERROTA"
         self.motor_principal.enemigo_en_combate = None
 
@@ -154,6 +207,9 @@ class EscenaCombate(EscenaBase):
         pantalla.blit(texto_cordura, (120, 80))
         
         nombre_enemigo = "Jefe Sectario" if self.enemigo_data.get("tipo") == "jefe" else "Bestia Oscura"
+        if self.enemigo_data.get("tipo") == "estatico":
+            nombre_enemigo = "Sectario Ritualista"
+            
         texto_hp_enemigo = self.fuente_ui.render(f"{nombre_enemigo}: {self.ia_enemigo.hp_actual}/{self.ia_enemigo.hp_maximo}", True, (255, 50, 50))
         pantalla.blit(texto_hp_enemigo, (500, 50))
         
@@ -161,19 +217,20 @@ class EscenaCombate(EscenaBase):
             titulo_menu = self.fuente_titulo.render("ELIGE TU ACCIÓN", True, (255, 215, 0))
             pantalla.blit(titulo_menu, (120, 370))
             
-            y_offset = 420
+            y_offset = 405
             for i, opcion in enumerate(self.opciones):
                 color = (255, 255, 255) if i == self.indice_seleccion else (100, 100, 100)
                 prefijo = "> " if i == self.indice_seleccion else "  "
                 
-                # Renderizado dinámico del nombre de la opción para mostrar el contador de pociones
                 nombre_opcion = opcion.replace('_', ' ').upper()
                 if opcion == "pocion":
                     nombre_opcion += f" (x{self.inventario.pociones})"
+                elif opcion == "distraer":
+                    nombre_opcion += f" (x{self.inventario.monedas})"
                     
                 texto_opcion = self.fuente_ui.render(f"{prefijo}{nombre_opcion}", True, color)
                 pantalla.blit(texto_opcion, (120, y_offset))
-                y_offset += 30
+                y_offset += 25
                 
         elif self.motor_combate.estado == "EJECUCION":
             info_enemigo = self.motor_combate.obtener_info_enemigo()
