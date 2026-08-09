@@ -1,0 +1,12 @@
+{
+    "cueva": "Te encuentras ante la entrada de una cueva oscura y profunda. ¿Qué secretos aguardarán dentro?",
+    "cristal": "¡Has encontrado un Fragmento de Cristal Ancestral!",
+    "moneda": "¡Has encontrado una Moneda Antigua! Brilla con un aura peculiar.",
+    "pocion": "¡Has recogido una Poción Curativa! Te sientes revitalizado.",
+    "llave_jungla": "Obtuviste la Llave de la Jungla. Sus hojas nunca se marchitan.",
+    "llave_desierto": "Obtuviste la Llave del Desierto. El metal está inusualmente caliente.",
+    "portal_cerrado": "El portal está inactivo. Necesitas la llave correcta para cruzar.",
+    "cofre_abierto": "¡La llave encaja! Dentro encuentras una GEMA OSCURA palpitante.",
+    "cofre_cerrado": "Un cofre antiguo fuertemente sellado. Tiene una cerradura peculiar.",
+    "portal_morado_cerrado": "Una barrera de energía cósmica te bloquea el paso."
+}
