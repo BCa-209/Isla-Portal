@@ -2,7 +2,7 @@ import pygame
 import sys
 from core.escena_base import EscenaBase
 from game.entities.jugador import Protagonista
-from game.entities.enemigos import EnemigoSlime, VistaSectario
+from game.entities.enemigos import EnemigoSlime, VistaSectario, VistaVagabundo
 from game.entities.objetos import Llave, InteractableItem
 from game.logic.motor_juego import GameManager
 from game.graphics.terreno import TileManager
@@ -11,9 +11,10 @@ import config
 class EscenaIsla(EscenaBase):
     def __init__(self):
         self.motor = GameManager()
-        self.e = config.ESCALA_BASE
-        self.tam_celda = config.TAM_CELDA
 
+        # graficoss
+        self.tam_celda = config.TAM_CELDA
+        self.e = config.ESCALA_BASE
         self.gestor_terreno = TileManager()
 
         pygame.font.init()
@@ -26,7 +27,10 @@ class EscenaIsla(EscenaBase):
         self.temporizador_enemigos = 0
         self.temporizador_carga = 0
         self.cooldown_movimiento = 0  # Controla la velocidad del movimiento continuo
-        self.recalcular_escala()  # Inicializa la escala basada en la resolución actual
+
+        self.camera_x = 0
+        self.camera_y = 0
+        self.recalcular_escala()
 
     def manejar_eventos(self, eventos):
         for evento in eventos:
@@ -35,10 +39,16 @@ class EscenaIsla(EscenaBase):
                 sys.exit()
                 
             if self.motor.estado == "CARGANDO":
-                # Omitir pantalla de carga al presionar cualquier tecla tras 2 segundos (120 frames)
                 if self.temporizador_carga >= 120 and evento.type == pygame.KEYDOWN:
                     self.motor.cargar_nivel(self.motor.nivel_objetivo)
                     self.temporizador_carga = 0
+                    
+                    # Reposicionamos la cámara instantáneamente al cambiar de mapa
+                    fila, col = self.motor.jugador_pos
+                    self.jugador_grafico.x = col * self.tam_celda
+                    self.jugador_grafico.y = fila * self.tam_celda
+                    self.camera_x = self.jugador_grafico.x - (config.ANCHO // 2) + (self.tam_celda // 2)
+                    self.camera_y = self.jugador_grafico.y - (config.ALTO // 2) + (self.tam_celda // 2)
                 return
                 
             if self.motor.estado == "DERROTA":
@@ -49,14 +59,11 @@ class EscenaIsla(EscenaBase):
             if self.motor.estado == "DIALOGO":
                 if evento.type == pygame.KEYDOWN and evento.key in [pygame.K_SPACE, pygame.K_RETURN]:
                     self.motor.cerrar_dialogo()
-                return 
+                return
 
     def actualizar(self):
         if self.motor.estado == "CARGANDO":
             self.temporizador_carga += 1
-            # Cuando termine de cargar el nivel, recalculamos la escala del nuevo mapa
-            if self.temporizador_carga == 120:
-                self.recalcular_escala()
             return
 
         if self.motor.estado == "EN_CURSO":
@@ -95,12 +102,18 @@ class EscenaIsla(EscenaBase):
             target_x = col_logica * self.tam_celda
             target_y = fila_logica * self.tam_celda
             
-            # Velocidad de deslizamiento (0.1 a 1.0). Un valor de 0.3 a 60FPS es muy fluido.
             velocidad_suavizado = 0.3 
-            
-            # Movimiento matemático fluido hacia el destino
             self.jugador_grafico.x += (target_x - self.jugador_grafico.x) * velocidad_suavizado
             self.jugador_grafico.y += (target_y - self.jugador_grafico.y) * velocidad_suavizado
+
+            # --- 4. CÁMARA FLUIDA (Seguimiento) ---
+            # El objetivo de la cámara es el centro visual del jugador menos la mitad de la pantalla
+            target_cam_x = self.jugador_grafico.x - (config.ANCHO // 2) + (self.tam_celda // 2)
+            target_cam_y = self.jugador_grafico.y - (config.ALTO // 2) + (self.tam_celda // 2)
+            
+            # Deslizamiento suave de la cámara
+            self.camera_x += (target_cam_x - self.camera_x) * 0.1
+            self.camera_y += (target_cam_y - self.camera_y) * 0.1
 
     def dibujar_pantalla_carga(self, pantalla):
         pantalla.fill((0, 0, 0))
@@ -196,24 +209,36 @@ class EscenaIsla(EscenaBase):
             self.dibujar_pantalla_carga(pantalla)
             return
 
-        pantalla.fill((0, 0, 0))
+        # Color base para el espacio "vacío" si la cámara enfoca fuera del mapa
+        pantalla.fill((0, 0, 0)) 
         nivel = self.motor.nivel_actual
         
-        # 1. Dibujamos el terreno base (Capa de fondo) utilizando el TileManager
-        for fila in range(self.motor.filas):
-            for col in range(self.motor.columnas):
-                x = col * self.tam_celda
-                y = fila * self.tam_celda
+        # --- OPTIMIZACIÓN (Culling) ---
+        # Calculamos qué filas y columnas caen dentro del área visible de la cámara
+        col_inicio = max(0, int(self.camera_x // self.tam_celda))
+        col_fin = min(self.motor.columnas, int((self.camera_x + config.ANCHO) // self.tam_celda) + 2)
+        fila_inicio = max(0, int(self.camera_y // self.tam_celda))
+        fila_fin = min(self.motor.filas, int((self.camera_y + config.ALTO) // self.tam_celda) + 2)
+
+        # 1. Dibujamos el terreno base y objetos estáticos (Solo los visibles)
+        for fila in range(fila_inicio, fila_fin):
+            for col in range(col_inicio, col_fin):
+                mundo_x = col * self.tam_celda
+                mundo_y = fila * self.tam_celda
+                
+                # Coordenada en pantalla = Coordenada del mundo - Offset de la Cámara
+                pantalla_x = mundo_x - self.camera_x
+                pantalla_y = mundo_y - self.camera_y
+                
                 tipo_casilla = self.motor.mapa[fila][col]
                 
-                # El gestor evalúa y dibuja texturas según el tipo y el nivel
-                self.gestor_terreno.dibujar_casilla(pantalla, tipo_casilla, x, y, self.tam_celda, nivel)
+                # El gestor dibuja usando la posición ajustada de pantalla
+                self.gestor_terreno.dibujar_casilla(pantalla, tipo_casilla, pantalla_x, pantalla_y, self.tam_celda, nivel)
 
-                # 2. Renderizado de Objetos Especiales Interaccionales (Capa media)
                 if tipo_casilla in [self.motor.LLAVE, self.motor.CRISTAL, self.motor.MONEDA, self.motor.POCION]:
                     if tipo_casilla == self.motor.LLAVE:
                         tipo_llave = "jungla" if nivel == 1 else "desierto"
-                        obj_grafico = Llave(x, y, self.e, tipo=tipo_llave)
+                        obj_grafico = Llave(pantalla_x, pantalla_y, self.e, tipo=tipo_llave)
                     else:
                         if tipo_casilla == self.motor.CRISTAL:
                             tipo_obj = "cristal"
@@ -221,32 +246,60 @@ class EscenaIsla(EscenaBase):
                             tipo_obj = "moneda"
                         elif tipo_casilla == self.motor.POCION:
                             tipo_obj = "pocion"
-                        obj_grafico = InteractableItem(x, y, self.e, tipo=tipo_obj)
+                        obj_grafico = InteractableItem(pantalla_x, pantalla_y, self.e, tipo=tipo_obj)
                     obj_grafico.render(pantalla)
                     
-                # 3. Estructuras Especiales Estáticas (Capa media)
                 elif tipo_casilla == self.motor.COFRE:
-                    pygame.draw.rect(pantalla, (139, 69, 19), (x + 5, y + 10, self.tam_celda - 10, self.tam_celda - 20))
-                    pygame.draw.rect(pantalla, (255, 215, 0), (x + self.tam_celda//2 - 5, y + self.tam_celda//2, 10, 5))
+                    pygame.draw.rect(pantalla, (139, 69, 19), (pantalla_x + 5, pantalla_y + 10, self.tam_celda - 10, self.tam_celda - 20))
+                    pygame.draw.rect(pantalla, (255, 215, 0), (pantalla_x + self.tam_celda//2 - 5, pantalla_y + self.tam_celda//2, 10, 5))
                 elif tipo_casilla == self.motor.PORTAL_MORADO:
-                    pygame.draw.circle(pantalla, (128, 0, 128), (x + self.tam_celda//2, y + self.tam_celda//2), self.tam_celda//2 - 5)
+                    pygame.draw.circle(pantalla, (128, 0, 128), (pantalla_x + self.tam_celda//2, pantalla_y + self.tam_celda//2), self.tam_celda//2 - 5)
                 elif tipo_casilla == self.motor.CADAVER:
-                    pygame.draw.circle(pantalla, (150, 0, 0), (x + self.tam_celda//2, y + self.tam_celda//2), self.tam_celda//2 - 5) 
-                    pygame.draw.rect(pantalla, (200, 200, 200), (x + self.tam_celda//2 - 10, y + self.tam_celda//2 - 15, 20, 30)) 
-        
-        # 4. Renderizado de Entidades Dinámicas (Capa superior)
+                    pygame.draw.circle(pantalla, (150, 0, 0), (pantalla_x + self.tam_celda//2, pantalla_y + self.tam_celda//2), self.tam_celda//2 - 5) 
+                    pygame.draw.rect(pantalla, (200, 200, 200), (pantalla_x + self.tam_celda//2 - 10, pantalla_y + self.tam_celda//2 - 15, 20, 30)) 
+
+        # 2. Renderizado Fluido de Enemigos
         for e_data in self.motor.enemigos:
-            enemigo_grafico = EnemigoSlime(e_data.get("x_visual", e_data["col"] * self.tam_celda), 
-                                           e_data.get("y_visual", e_data["fila"] * self.tam_celda), 
-                                           self.e, self.tam_celda)
-            # Modificamos setX y setY manualmente si usas LERP
-            enemigo_grafico.setX(e_data.get("x_visual", e_data["col"] * self.tam_celda))
-            enemigo_grafico.setY(e_data.get("y_visual", e_data["fila"] * self.tam_celda))
+            target_x = e_data["col"] * self.tam_celda
+            target_y = e_data["fila"] * self.tam_celda
+            
+            if "x_visual" not in e_data:
+                e_data["x_visual"] = target_x
+                e_data["y_visual"] = target_y
+                
+            e_data["x_visual"] += (target_x - e_data["x_visual"]) * 0.2
+            e_data["y_visual"] += (target_y - e_data["y_visual"]) * 0.2
+            
+            x_render = e_data["x_visual"] - self.camera_x
+            y_render = e_data["y_visual"] - self.camera_y
+            
+            # Instanciar el gráfico correcto según el tipo
+            if e_data["tipo"] == "vagabundo":
+                enemigo_grafico = VistaVagabundo(0, 0, self.e, self.tam_celda)
+            elif e_data["tipo"] == "estatico": # Opcional: si tienes sectarios en el mapa
+                enemigo_grafico = VistaSectario(0, 0, self.e, self.tam_celda)
+            else:
+                enemigo_grafico = EnemigoSlime(0, 0, self.e, self.tam_celda)
+                
+            enemigo_grafico.setX(x_render)
+            enemigo_grafico.setY(y_render)
             enemigo_grafico.render(pantalla)
                 
+        # 3. Renderizado del Jugador
+        # Guardamos la posición absoluta del mundo
+        temp_x = self.jugador_grafico.x
+        temp_y = self.jugador_grafico.y
+        
+        # Le aplicamos temporalmente la posición de cámara para dibujarlo centrado
+        self.jugador_grafico.x -= self.camera_x
+        self.jugador_grafico.y -= self.camera_y
         self.jugador_grafico.render(pantalla)
+        
+        # Restauramos la matemática original
+        self.jugador_grafico.x = temp_x
+        self.jugador_grafico.y = temp_y
 
-        # 5. Capas de Interfaz de Usuario (Overlay)
+        # 4. Capas UI (Estáticas frente a la cámara)
         if self.motor.estado == "DERROTA":
             self.dibujar_overlay_derrota(pantalla)
         elif self.motor.estado == "DIALOGO":

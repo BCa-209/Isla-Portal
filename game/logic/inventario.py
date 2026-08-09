@@ -8,11 +8,11 @@ class PlayerInventory:
         self.cristales = 0
         self.monedas = 0
         self.pociones = 0  
-        self.gema_oscura = False 
+        self.gema_oscura = False
         
         self.salud_maxima = 100
         self.salud_actual = 100
-        self.cordura = 100 
+        self.cordura = 40 
         
         self.muertes_comunes = 0 # Controlador para el final especial
         

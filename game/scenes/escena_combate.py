@@ -4,7 +4,7 @@ from core.escena_base import EscenaBase
 from game.logic.motor_combate import CombatManager
 from game.logic.ia_enemigos import IAEnemigo
 from game.entities.jugador import Protagonista
-from game.entities.enemigos import EnemigoSlime, VistaSectario
+from game.entities.enemigos import EnemigoSlime, VistaSectario, VistaVagabundo
 from game.logic.finales_manager import EndingManager 
 import config
 
@@ -27,11 +27,12 @@ class EscenaCombate(EscenaBase):
         self.jugador_grafico.setXY(150, 250)
         
         if es_jefe:
-            self.enemigo_grafico = VistaSectario(0, 0, self.e)
+            self.enemigo_grafico = VistaSectario(0, 0, self.e, self.tam_celda)
         else:
-            # Los sectarios estáticos usan los mismos gráficos que el jefe para mantener coherencia
             if self.enemigo_data.get("tipo") == "estatico":
                 self.enemigo_grafico = VistaSectario(0, 0, self.e, self.tam_celda)
+            elif self.enemigo_data.get("tipo") == "vagabundo":
+                self.enemigo_grafico = VistaVagabundo(0, 0, self.e, self.tam_celda)
             else:
                 self.enemigo_grafico = EnemigoSlime(0, 0, self.e, self.tam_celda)
                 
@@ -47,6 +48,20 @@ class EscenaCombate(EscenaBase):
         
         self.mensaje_resolucion = ""
         self.timer_resolucion = 0
+
+        if self.enemigo_data.get("tipo") == "vagabundo":
+            # Cambiamos el estado inicial directamente a la resolución de un golpe
+            self.motor_combate.estado = "RESOLUCION"
+            
+            # Aplicamos el daño sorpresa
+            dano_emboscada = 20
+            cordura_perdida = 15
+            self.inventario.salud_actual -= dano_emboscada
+            self.inventario.cordura -= cordura_perdida
+            
+            # Mostramos el mensaje en pantalla
+            self.mensaje_resolucion = f"¡El Vagabundo ataca primero desde las sombras! (-{dano_emboscada} HP)"
+            self.timer_resolucion = 120  # segundos para procesar el susto
 
     def manejar_eventos(self, eventos):
         for evento in eventos:
@@ -85,6 +100,12 @@ class EscenaCombate(EscenaBase):
                                 
                             if self.enemigo_data.get("tipo") == "jefe":
                                 self.mensaje_resolucion = "¡El Líder no se dejará sobornar!"
+                                self.motor_combate.estado = "RESOLUCION"
+                                self.timer_resolucion = 90
+                                return
+
+                            if self.enemigo_data.get("tipo") == "vagabundo":
+                                self.mensaje_resolucion = "¡El Vagabundo ignora el oro, solo anhela tu cordura!"
                                 self.motor_combate.estado = "RESOLUCION"
                                 self.timer_resolucion = 90
                                 return

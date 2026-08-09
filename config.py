@@ -1,6 +1,6 @@
 # Constantes globales del juego
-ANCHO = 1800
-ALTO = 900
+ANCHO = 1280
+ALTO = 720
 FPS = 60 # Tasa de refresco
 
 # Sistema de grilla heredado del motor base

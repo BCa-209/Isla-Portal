@@ -4,6 +4,7 @@ import json
 import os
 from core.escena_base import EscenaBase
 from game.logic.finales_manager import EndingManager
+from game.logic.inventario import PlayerInventory
 import config
 
 class EscenaCosmica(EscenaBase):
@@ -11,7 +12,7 @@ class EscenaCosmica(EscenaBase):
         pygame.font.init()
         self.fuente_dialogo = pygame.font.SysFont("arial", 22)
         self.timer = 0
-        inventario = motor.inventario
+        inventario = PlayerInventory.inventario
         manager = EndingManager(inventario)
         self.titulo_final, self.texto = manager.evaluar_final("portal_morado")
         
@@ -66,3 +67,4 @@ class EscenaCosmica(EscenaBase):
         if self.timer > 60:
             instruccion = self.fuente_dialogo.render("Presiona cualquier tecla para terminar...", True, (150, 150, 150))
             pantalla.blit(instruccion, (rect_caja[0] + rect_caja[2] - 420, rect_caja[1] + rect_caja[3] - 35))
+        self
