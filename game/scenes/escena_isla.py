@@ -5,6 +5,7 @@ from game.entities.jugador import Protagonista
 from game.entities.enemigos import EnemigoSlime, VistaSectario
 from game.entities.objetos import Llave, InteractableItem
 from game.logic.motor_juego import GameManager
+from game.graphics.terreno import TileManager
 import config
 
 class EscenaIsla(EscenaBase):
@@ -12,7 +13,9 @@ class EscenaIsla(EscenaBase):
         self.motor = GameManager()
         self.e = config.ESCALA_BASE
         self.tam_celda = config.TAM_CELDA
-        
+
+        self.gestor_terreno = TileManager()
+
         pygame.font.init()
         self.fuente_ui = pygame.font.SysFont("arial", 48, bold=True)
         self.fuente_dialogo = pygame.font.SysFont("arial", 22)
@@ -196,27 +199,18 @@ class EscenaIsla(EscenaBase):
         pantalla.fill((0, 0, 0))
         nivel = self.motor.nivel_actual
         
-        colores = {
-            self.motor.TIERRA: (80, 160, 80) if nivel == 1 else (210, 180, 140) if nivel == 2 else (90, 90, 100),
-            self.motor.AGUA: (28, 107, 160) if nivel == 1 else (60, 200, 220) if nivel == 2 else (20, 20, 25),
-            self.motor.ROCA: (100, 100, 100) if nivel == 1 else (180, 150, 110) if nivel == 2 else (60, 60, 70),
-            
-            self.motor.PORTAL: (0, 150, 255),
-            self.motor.PORTAL_AZUL: (255, 50, 50), 
-            self.motor.CUEVA: (30, 30, 30), 
-            self.motor.JEFE: (150, 0, 0)
-        }
-        
+        # 1. Dibujamos el terreno base (Capa de fondo) utilizando el TileManager
         for fila in range(self.motor.filas):
             for col in range(self.motor.columnas):
                 x = col * self.tam_celda
                 y = fila * self.tam_celda
                 tipo_casilla = self.motor.mapa[fila][col]
                 
+                # El gestor evalúa y dibuja texturas según el tipo y el nivel
+                self.gestor_terreno.dibujar_casilla(pantalla, tipo_casilla, x, y, self.tam_celda, nivel)
+
+                # 2. Renderizado de Objetos Especiales Interaccionales (Capa media)
                 if tipo_casilla in [self.motor.LLAVE, self.motor.CRISTAL, self.motor.MONEDA, self.motor.POCION]:
-                    pygame.draw.rect(pantalla, colores[self.motor.TIERRA], (x, y, self.tam_celda, self.tam_celda))
-                    pygame.draw.rect(pantalla, (0, 0, 0), (x, y, self.tam_celda, self.tam_celda), 1)
-                    
                     if tipo_casilla == self.motor.LLAVE:
                         tipo_llave = "jungla" if nivel == 1 else "desierto"
                         obj_grafico = Llave(x, y, self.e, tipo=tipo_llave)
@@ -227,53 +221,32 @@ class EscenaIsla(EscenaBase):
                             tipo_obj = "moneda"
                         elif tipo_casilla == self.motor.POCION:
                             tipo_obj = "pocion"
-                            
                         obj_grafico = InteractableItem(x, y, self.e, tipo=tipo_obj)
-                        
                     obj_grafico.render(pantalla)
                     
-                else:
-                    color = colores.get(tipo_casilla, (0,0,0))
-                    pygame.draw.rect(pantalla, color, (x, y, self.tam_celda, self.tam_celda))
-                    pygame.draw.rect(pantalla, (0, 0, 0), (x, y, self.tam_celda, self.tam_celda), 1)
-                    
-                    if tipo_casilla == self.motor.CUEVA:
-                        pygame.draw.circle(pantalla, (10, 10, 10), (x + self.tam_celda//2, y + self.tam_celda//2), self.tam_celda//3)
-                    elif tipo_casilla == self.motor.COFRE:
-                        pygame.draw.rect(pantalla, (139, 69, 19), (x + 5, y + 10, self.tam_celda - 10, self.tam_celda - 20))
-                        pygame.draw.rect(pantalla, (255, 215, 0), (x + self.tam_celda//2 - 5, y + self.tam_celda//2, 10, 5))
-                    elif tipo_casilla == self.motor.PORTAL_MORADO:
-                        pygame.draw.circle(pantalla, (128, 0, 128), (x + self.tam_celda//2, y + self.tam_celda//2), self.tam_celda//2 - 5)
-                    elif tipo_casilla == self.motor.CADAVER:
-                        pygame.draw.circle(pantalla, (150, 0, 0), (x + self.tam_celda//2, y + self.tam_celda//2), self.tam_celda//2 - 5) 
-                        pygame.draw.rect(pantalla, (200, 200, 200), (x + self.tam_celda//2 - 10, y + self.tam_celda//2 - 15, 20, 30))
+                # 3. Estructuras Especiales Estáticas (Capa media)
+                elif tipo_casilla == self.motor.COFRE:
+                    pygame.draw.rect(pantalla, (139, 69, 19), (x + 5, y + 10, self.tam_celda - 10, self.tam_celda - 20))
+                    pygame.draw.rect(pantalla, (255, 215, 0), (x + self.tam_celda//2 - 5, y + self.tam_celda//2, 10, 5))
+                elif tipo_casilla == self.motor.PORTAL_MORADO:
+                    pygame.draw.circle(pantalla, (128, 0, 128), (x + self.tam_celda//2, y + self.tam_celda//2), self.tam_celda//2 - 5)
+                elif tipo_casilla == self.motor.CADAVER:
+                    pygame.draw.circle(pantalla, (150, 0, 0), (x + self.tam_celda//2, y + self.tam_celda//2), self.tam_celda//2 - 5) 
+                    pygame.draw.rect(pantalla, (200, 200, 200), (x + self.tam_celda//2 - 10, y + self.tam_celda//2 - 15, 20, 30)) 
         
-        # En el método render(self, pantalla):
-        
-        # Mapeo de enemigos lógicos a entidades visuales para que se muevan suavemente
+        # 4. Renderizado de Entidades Dinámicas (Capa superior)
         for e_data in self.motor.enemigos:
-            target_x = e_data["col"] * self.tam_celda
-            target_y = e_data["fila"] * self.tam_celda
-            
-            # Instanciamos el gráfico del enemigo
-            enemigo_grafico = EnemigoSlime(0, 0, self.e, self.tam_celda)
-            
-            # Si no le hemos inyectado una posición visual anterior, la inicializamos
-            if "x_visual" not in e_data:
-                e_data["x_visual"] = target_x
-                e_data["y_visual"] = target_y
-                
-            # Aplicamos la misma interpolación LERP (movimiento fluido)
-            e_data["x_visual"] += (target_x - e_data["x_visual"]) * 0.2
-            e_data["y_visual"] += (target_y - e_data["y_visual"]) * 0.2
-            
-            # Le pasamos las coordenadas suavizadas al gráfico para que lo dibuje
-            enemigo_grafico.setX(e_data["x_visual"])
-            enemigo_grafico.setY(e_data["y_visual"])
+            enemigo_grafico = EnemigoSlime(e_data.get("x_visual", e_data["col"] * self.tam_celda), 
+                                           e_data.get("y_visual", e_data["fila"] * self.tam_celda), 
+                                           self.e, self.tam_celda)
+            # Modificamos setX y setY manualmente si usas LERP
+            enemigo_grafico.setX(e_data.get("x_visual", e_data["col"] * self.tam_celda))
+            enemigo_grafico.setY(e_data.get("y_visual", e_data["fila"] * self.tam_celda))
             enemigo_grafico.render(pantalla)
                 
         self.jugador_grafico.render(pantalla)
 
+        # 5. Capas de Interfaz de Usuario (Overlay)
         if self.motor.estado == "DERROTA":
             self.dibujar_overlay_derrota(pantalla)
         elif self.motor.estado == "DIALOGO":
