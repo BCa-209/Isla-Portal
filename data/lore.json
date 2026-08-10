@@ -1,14 +1,14 @@
 {
-    "1": "LA ISLA PRINCIPAL\n\nUn lugar donde la densa\nvegetación oculta antiguos\nsecretos.\n\nLos lugareños dicen que\nlas cuevas albergan\nfragmentos de un poder\nolvidado.",
-    "2": "LA ISLA DESIERTA\n\nBajo el sol abrasador,\nlas ruinas de una \ncivilización antigua\nyacen enterradas en \nla arena.\n\nPocos sobreviven a este\ncalor extremo.",
-    "3": "EL MONUMENTO ANTIGUO\n\nEl aire se siente\npesado aquí.\n\nSientes que el origen\nde los portales está\ndelante de ti. Prepárate\npara el juicio final.",
-    "4": "CUEVA PROFUNDA\n\nEl hedor a sangre y los\nsusurros te hielan la\nsangre.\n\nSientes que tu mente\nse quiebra al observar\nla oscuridad.",
-    "final_cosmico": "Has cruzado el velo mortal. La Entidad Cósmica te observa en silencio absoluto. Tu mente se ha apagado. El ciclo ha concluido...",
+    "1": "LA ISLA PRINCIPAL\n\nUn lugar donde la densa\nvegetación oculta antiguos\nsecretos.\n\nLos lugareños parecen pertenecer a un culto\nque venera a una entidad desconocida.",
+    "2": "LA ISLA DESIERTA\n\nBajo el sol abrasador,\nlas ruinas de una \ncivilización antigua\nyacen enterradas en \nla arena.\n\nExtrañas entidades deambulan por las ruinas.",
+    "3": "EL MONUMENTO ANTIGUO\n\nEl aire se siente\npesado aquí.\n\nSientes que el origen\nde la secta está\ndelante de ti. Prepárate\npara tomar una decision y descubrir la verdad.",
+    "4": "CUEVA PROFUNDA\n\nEl hedor a sangre y los\nsusurros te hielan la\nsangre.\n\nSientes que tu mente\nse quiebra al observar\nla oscuridad y los secretos que aguarda.",
+    "final_cosmico": "Has atravesado la membrana de la realidad. La Entidad Cósmica que te susurra desde el vacío absoluto se hace presente, sin tiempo ni espacio. Tu mente finita se apaga ante la inmensidad de lo desconocido.",
     "mensajes_locura": [
-        "¿Por qué sigues avanzando?\nNo hay escapatoria.",
-        "Están observándote desde\nla oscuridad.",
-        "Tus recuerdos son falsos.\nLa isla es tu única realidad.",
-        "No confíes en tus ojos.\nTodo lo que ves es una ilusión.",
-        "Ríndete. El vacío te llama.\nDéjate caer."
+        "¿Por qué sigues avanzando? Las probabilidades de supervivencia son nulas.",
+        "Múltiples presencias detectadas en la periferia de tu visión.",
+        "Tus memorias son implantes falsos. Este laberinto es tu única verdad.",
+        "Fallo sensorial inminente. El entorno se está colapsando.",
+        "Una frecuencia inaudible te ordena que dejes de luchar."
     ]
 }

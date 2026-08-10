@@ -2,7 +2,7 @@ import pygame
 import sys
 from core.escena_base import EscenaBase
 from game.entities.jugador import Protagonista
-from game.entities.enemigos import EnemigoSlime, VistaSectario, VistaVagabundo
+from game.entities.enemigos import EnemigoSlime, LiderSectario, VistaSectario, VistaVagabundo
 from game.entities.objetos import Llave, InteractableItem
 from game.logic.motor_juego import GameManager
 from game.graphics.terreno import TileManager
@@ -30,7 +30,7 @@ class EscenaIsla(EscenaBase):
 
         self.camera_x = 0
         self.camera_y = 0
-        self.recalcular_escala()
+        #self.recalcular_escala()
 
     def manejar_eventos(self, eventos):
         for evento in eventos:
@@ -59,6 +59,12 @@ class EscenaIsla(EscenaBase):
             if self.motor.estado == "DIALOGO":
                 if evento.type == pygame.KEYDOWN and evento.key in [pygame.K_SPACE, pygame.K_RETURN]:
                     self.motor.cerrar_dialogo()
+                return
+            
+            if self.motor.estado == "VICTORIA_PORTAL":
+                if evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
                 return
 
     def actualizar(self):
@@ -175,6 +181,31 @@ class EscenaIsla(EscenaBase):
         rect_instruccion = render_instruccion.get_rect(center=(config.ANCHO // 2, config.ALTO // 2 + 80))
         pantalla.blit(render_instruccion, rect_instruccion)
 
+    def dibujar_overlay_victoria(self, pantalla):
+        # Fondo oscuro pero ligeramente azulado y pacífico
+        overlay = pygame.Surface((config.ANCHO, config.ALTO), pygame.SRCALPHA)
+        overlay.fill((10, 15, 30, 230)) 
+        pantalla.blit(overlay, (0, 0))
+
+        # Extraemos los textos que guardamos en el motor
+        titulo = getattr(self.motor, "titulo_final", "EL VIAJE CONCLUYE")
+        texto = getattr(self.motor, "texto_final", "Has encontrado tu propio camino.")
+
+        # 1. Renderizar el Título (En azul celestial / cyan)
+        render_titulo = self.fuente_ui.render(titulo, True, (100, 200, 255))
+        rect_titulo = render_titulo.get_rect(center=(config.ANCHO // 2, config.ALTO // 2 - 60))
+        pantalla.blit(render_titulo, rect_titulo)
+
+        # 2. Renderizar la narrativa del final (En blanco)
+        render_texto = self.fuente_dialogo.render(texto, True, (220, 220, 220))
+        rect_texto = render_texto.get_rect(center=(config.ANCHO // 2, config.ALTO // 2))
+        pantalla.blit(render_texto, rect_texto)
+
+        # 3. Instrucción de salida (En dorado)
+        render_instruccion = self.fuente_dialogo.render("Presiona [ESC] para salir...", True, (255, 215, 0))
+        rect_instruccion = render_instruccion.get_rect(center=(config.ANCHO // 2, config.ALTO // 2 + 80))
+        pantalla.blit(render_instruccion, rect_instruccion)
+
     def dibujar_dialogo(self, pantalla):
         margen = 20
         alto_caja = 120
@@ -263,7 +294,7 @@ class EscenaIsla(EscenaBase):
         for e_data in self.motor.enemigos:
             target_x = e_data["col"] * self.tam_celda
             target_y = e_data["fila"] * self.tam_celda
-            
+             
             if "x_visual" not in e_data:
                 e_data["x_visual"] = target_x
                 e_data["y_visual"] = target_y
@@ -277,10 +308,10 @@ class EscenaIsla(EscenaBase):
             # Instanciar el gráfico correcto según el tipo
             if e_data["tipo"] == "vagabundo":
                 enemigo_grafico = VistaVagabundo(0, 0, self.e, self.tam_celda)
-            elif e_data["tipo"] == "estatico": # Opcional: si tienes sectarios en el mapa
+            elif e_data["tipo"] == "sectario":
                 enemigo_grafico = VistaSectario(0, 0, self.e, self.tam_celda)
-            else:
-                enemigo_grafico = EnemigoSlime(0, 0, self.e, self.tam_celda)
+            elif e_data["tipo"] == "lidersectario":
+                enemigo_grafico = LiderSectario(0, 0, self.e, self.tam_celda)
                 
             enemigo_grafico.setX(x_render)
             enemigo_grafico.setY(y_render)
@@ -303,5 +334,7 @@ class EscenaIsla(EscenaBase):
         # 4. Capas UI (Estáticas frente a la cámara)
         if self.motor.estado == "DERROTA":
             self.dibujar_overlay_derrota(pantalla)
+        elif self.motor.estado == "VICTORIA_PORTAL": # <-- NUEVA LLAMADA
+            self.dibujar_overlay_victoria(pantalla)
         elif self.motor.estado == "DIALOGO":
             self.dibujar_dialogo(pantalla)

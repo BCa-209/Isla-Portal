@@ -1,0 +1,30 @@
+{
+    "muerte_comun_1": {
+        "titulo": "El Primer Despertar",
+        "texto": "Has caído. Las raíces de la isla reclaman tu biomasa, pero la anomalía del ciclo te obliga a empezar de nuevo..."
+    },
+    "muerte_comun_2": {
+        "titulo": "Asimilación Completa",
+        "texto": "La oscuridad ha devorado la última chispa de tu conciencia. Ahora eres uno más de los horrores que deambulan por las sombras."
+    },
+    "muerte_jefe": {
+        "titulo": "La Ofrenda Perfecta",
+        "texto": "El Líder Sectario completa su ecuación macabra. Tu sangre alimenta el núcleo, sellando tu destino como el sacrificio final."
+    },
+    "decision_huir": {
+        "titulo": "Retorno al Vacío",
+        "texto": "Derrotaste al líder y huiste al océano abierto. Sobreviviste, pero las geometrías imposibles de la isla perseguirán tus sueños hasta la locura."
+    },
+    "decision_activar_convergencia": {
+        "titulo": "Convergencia Armónica",
+        "texto": "Los cristales resuenan al unísono. Has recalibrado el núcleo y sellado la brecha interdimensional. Ya no eres un prisionero; eres el arquitecto de este mundo."
+    },
+    "decision_activar_fuga": {
+        "titulo": "Escape Fragmentado",
+        "texto": "Atravesaste el portal rasgando la realidad, pero a un costo terrible. Dejaste atrás un mundo agonizante y una parte de tu propia alma."
+    },
+    "decision_destruir": {
+        "titulo": "Colapso Entrópico",
+        "texto": "El núcleo solar implosiona en un destello cegador. La anomalía espacial se corrige a sí misma, borrando la isla y tu existencia de la historia."
+    }
+}

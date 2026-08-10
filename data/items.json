@@ -1,12 +1,12 @@
 {
-    "cueva": "Te encuentras ante la entrada de una cueva oscura y profunda. ¿Qué secretos aguardarán dentro?",
-    "cristal": "¡Has encontrado un Fragmento de Cristal Ancestral!",
-    "moneda": "¡Has encontrado una Moneda Antigua! Brilla con un aura peculiar.",
-    "pocion": "¡Has recogido una Poción Curativa! Te sientes revitalizado.",
-    "llave_jungla": "Obtuviste la Llave de la Jungla. Sus hojas nunca se marchitan.",
-    "llave_desierto": "Obtuviste la Llave del Desierto. El metal está inusualmente caliente.",
-    "portal_cerrado": "El portal está inactivo. Necesitas la llave correcta para cruzar.",
-    "cofre_abierto": "¡La llave encaja! Dentro encuentras una GEMA OSCURA palpitante.",
-    "cofre_cerrado": "Un cofre antiguo fuertemente sellado. Tiene una cerradura peculiar.",
-    "portal_morado_cerrado": "Una barrera de energía cósmica te bloquea el paso."
+    "cueva": "Una brecha en la roca exhala un aliento helado. La oscuridad absoluta de su interior parece devolverte la mirada...",
+    "cristal": "El Fragmento de Cristal Ancestral pulsa con una luz antinatural. Escuchas un leve zumbido estático al tocarlo.",
+    "moneda": "Has recogido una Moneda Antigua. Su metal frío parece absorber la luz a su alrededor.",
+    "pocion": "El líquido viscoso arde al tragarlo, pero tus heridas comienzan a cerrarse a un ritmo biológicamente imposible.",
+    "llave_jungla": "La Llave de la Jungla está tallada en una madera petrificada que aún rezuma savia. Se siente viva en tus manos.",
+    "llave_desierto": "La Llave del Desierto quema al tacto, forjada con un metal que irradia el calor de mil soles extintos.",
+    "portal_cerrado": "La estructura rúnica yace inactiva. Un mecanismo interdimensional espera la resonancia de la llave correcta.",
+    "cofre_abierto": "Los engranajes giran con un chirrido sordo. En el fondo descansa una GEMA OSCURA, latiendo como un corazón petrificado.",
+    "cofre_cerrado": "Un arcón sellado por tecnología o magia incomprensible. La cerradura geométrica no cederá por la fuerza.",
+    "portal_morado_cerrado": "Una fisura en el espacio-tiempo te corta el paso. La energía cósmica crepita, advirtiendo de la aniquilación inminente."
 }

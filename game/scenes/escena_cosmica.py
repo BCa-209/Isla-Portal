@@ -6,6 +6,7 @@ import os
 from core.escena_base import EscenaBase
 from game.logic.finales_manager import EndingManager
 from game.logic.inventario import PlayerInventory
+from game.sounds.gestor_audio import SoundManager
 import config
 
 class EscenaCosmica(EscenaBase):
@@ -16,6 +17,11 @@ class EscenaCosmica(EscenaBase):
         inventario = PlayerInventory()
         manager = EndingManager(inventario)
         self.titulo_final, self.texto = manager.evaluar_final("portal_morado")
+
+        self.audio = SoundManager()
+        self.audio.detener_todos() # Silenciamos el ambiente anterior
+        self.audio.ajustar_volumen('final', 0.5) # Ajusta este valor de 0.0 a 1.0 según lo fuerte que sea el mp3
+        self.audio.reproducir('final')
 
     def manejar_eventos(self, eventos):
         for evento in eventos:

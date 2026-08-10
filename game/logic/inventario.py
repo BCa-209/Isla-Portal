@@ -1,12 +1,12 @@
 class PlayerInventory:
     def __init__(self):
         self.fragmentos = 0
-        self.llave_jungla = False
-        self.llave_desierto = False
+        self.llave_jungla = True
+        self.llave_desierto = True
         self.llave_cofre = False 
         
-        self.cristales = 0
-        self.monedas = 0
+        self.cristales = 10
+        self.monedas = 10
         self.pociones = 10
         self.gema_oscura = True
         
